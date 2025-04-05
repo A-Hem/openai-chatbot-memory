@@ -1,3 +1,5 @@
+```mermaid
+
 secure-ai-chat-memories/
 ├── README.md (updated)
 ├── requirements.txt (updated)
