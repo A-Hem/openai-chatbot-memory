@@ -25,7 +25,8 @@ jobs:
       - name: Setup test environment
         run: |
           mkdir -p tests/tmp
-          python -c "import passlib.hash; print('Argon2 version:', passlib.hash.argon2.__version__)"
+          # Verify Argon2 is available
+          python -c "from passlib.hash import argon2; print('Argon2 hash available:', argon2.hash('test'))"
           
       - name: Run tests
         run: |
