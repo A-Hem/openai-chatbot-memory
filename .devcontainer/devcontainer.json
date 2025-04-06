@@ -1,0 +1,44 @@
+{
+  "name": "OpenAI Chatbot Memory",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "forwardPorts": [],
+  "postCreateCommand": "",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-toolsai.jupyter",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-azuretools.vscode-docker",
+        "matangover.mypy"
+      ],
+      "settings": {
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.nosetestsEnabled": false,
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "python.formatting.blackPath": "/usr/local/bin/black",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        },
+        "python.linting.enabled": true,
+        "python.linting.mypyEnabled": true
+      }
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "remoteUser": "vscode"
+}
