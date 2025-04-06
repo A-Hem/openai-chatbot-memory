@@ -12,12 +12,15 @@ import base64
 from typing import Tuple, Optional
 from passlib.hash import argon2
 
-def generate_salt() -> bytes:
+def generate_salt(size: int = 16) -> bytes:
     """
     Generate a secure random salt.
     
+    Args:
+        size: Size of the salt in bytes
+        
     Returns:
-        Random bytes for use as a salt
+        Random salt bytes
     """
     return os.urandom(16)
 
@@ -36,15 +39,19 @@ def compute_hash(password: str, salt: bytes = None) -> Tuple[bytes, bytes]:
         salt = generate_salt()
     
     # Use Argon2id with recommended parameters
-    hash_str = argon2.using(
+    hash_obj = argon2.using(
         salt=salt,
         memory_cost=65536,  # 64MB
         time_cost=3,        # 3 iterations
         parallelism=4,      # 4 parallel threads
         hash_len=32,        # 32 bytes output
         type='id'           # Use Argon2id
-    ).hash(password)
+    )
     
+    # Hash the password
+    hash_str = hash_obj.hash(password)
+    
+    # Return the hash string and salt
     return hash_str.encode(), salt
 
 def verify_hash(password: str, hash_str: str) -> bool:
@@ -57,10 +64,42 @@ def verify_hash(password: str, hash_str: str) -> bool:
         
     Returns:
         bool: True if password matches hash, False otherwise
+        
+    Raises:
+        ValueError: If hash_str is None
     """
+    if hash_str is None:
+        raise ValueError("Hash string cannot be None")
+    
+    if not isinstance(hash_str, str):
+        return False
+    
+    if not hash_str:
+        return False
+    
     try:
-        return argon2.verify(hash_str, password)
+        # First check if it's a standard argon2 hash format
+        if hash_str.startswith('$argon2'):
+            return argon2.verify(password, hash_str)
+        
+        # Decode our custom hash format (base64-encoded hash:salt)
+        hash_bytes, salt = string_to_hash(hash_str)
+        
+        # Check if decoded hash is a complete argon2 hash string
+        if hash_bytes.startswith(b'$argon2'):
+            return argon2.verify(password, hash_bytes.decode())
+            
+        # Otherwise, we need to compute a new hash with the same salt and compare
+        # Get a new hash with the same salt
+        new_hash, _ = compute_hash(password, salt)
+        
+        # Convert to string for comparison
+        new_hash_str = hash_to_string(new_hash, salt)
+        
+        # Compare the original hash string with the new hash string
+        return hash_str == new_hash_str
     except Exception:
+        # Any error in verification should result in failure
         return False
 
 def secure_compare(a: str, b: str) -> bool:
@@ -117,32 +156,21 @@ def string_to_hash(hash_str: str) -> Tuple[bytes, bytes]:
             raise ValueError("Invalid hash string format")
             
         return parts[0], parts[1]
-    except Exception:
-        raise ValueError("Invalid hash string")
+    except Exception as e:
+        raise ValueError(f"Invalid hash string: {str(e)}")
 
 # Example usage
 if __name__ == "__main__":
-    # Test password hashing
+    # Hash a password
     password = "my-secure-password"
+    hash_bytes, salt = compute_hash(password)
     
-    # Compute hash
-    hash_str, salt = compute_hash(password)
-    print(f"Generated hash: {hash_str}")
-    print(f"Generated salt: {salt.hex()}")
+    # Convert to string
+    hash_str = hash_to_string(hash_bytes, salt)
+    print(f"Hash string: {hash_str}")
     
     # Verify password
-    is_valid = verify_hash(password, hash_str)
-    print(f"Password valid: {is_valid}")
-    
-    # Test with wrong password
-    wrong_password = "wrong-password"
-    is_valid = verify_hash(wrong_password, hash_str)
-    print(f"Wrong password valid: {is_valid}")
-    
-    # Test secure comparison
-    str1 = "secret"
-    str2 = "secret"
-    str3 = "different"
-    
-    print(f"Secure compare (same): {secure_compare(str1, str2)}")
-    print(f"Secure compare (different): {secure_compare(str1, str3)}") 
+    if verify_hash(password, hash_str):
+        print("Password verified!")
+    else:
+        print("Password verification failed!") 
