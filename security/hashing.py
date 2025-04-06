@@ -48,11 +48,11 @@ def compute_hash(password: str, salt: bytes = None) -> Tuple[bytes, bytes]:
         type='id'           # Use Argon2id
     )
     
-    # Hash the password
-    hash_str = hash_obj.hash(password)
+    # Hash the password and get the full hash string
+    full_hash = hash_obj.hash(password)
     
     # Return the hash string and salt
-    return hash_str.encode(), salt
+    return full_hash.encode(), salt
 
 def verify_hash(password: str, hash_str: str) -> bool:
     """
@@ -78,26 +78,23 @@ def verify_hash(password: str, hash_str: str) -> bool:
         return False
     
     try:
-        # First check if it's a standard argon2 hash format
+        # First try to verify using standard Argon2 format
         if hash_str.startswith('$argon2'):
             return argon2.verify(password, hash_str)
         
-        # Decode our custom hash format (base64-encoded hash:salt)
-        hash_bytes, salt = string_to_hash(hash_str)
-        
-        # Check if decoded hash is a complete argon2 hash string
-        if hash_bytes.startswith(b'$argon2'):
-            return argon2.verify(password, hash_bytes.decode())
+        # If not standard format, try our custom format
+        try:
+            hash_bytes, salt = string_to_hash(hash_str)
+            if hash_bytes.startswith(b'$argon2'):
+                return argon2.verify(password, hash_bytes.decode())
+        except ValueError:
+            pass
             
-        # Otherwise, we need to compute a new hash with the same salt and compare
-        # Get a new hash with the same salt
+        # If all else fails, compute new hash with same salt and compare
         new_hash, _ = compute_hash(password, salt)
-        
-        # Convert to string for comparison
         new_hash_str = hash_to_string(new_hash, salt)
+        return secure_compare(hash_str, new_hash_str)
         
-        # Compare the original hash string with the new hash string
-        return hash_str == new_hash_str
     except Exception:
         # Any error in verification should result in failure
         return False
