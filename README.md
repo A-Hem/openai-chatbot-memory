@@ -90,7 +90,13 @@ openai-chatbot-memory/
 ├── README.md                # This file
 └── run_tests.sh             # Test runner script
 ```
+ 
 
 ## License
 
 MIT
+
+## why? I have created a few JavaScript and typescript sqlite memory banks for cursor and I thought that this memory codebase was simple but effective so I decided to !vibe the whole thing is just !vibe 🐸 and when I had issues in cursors implementation of the built in project awareness and my local DB I immediately thought to password protect the database and put the password in the database and somehow this really surprised me. crypto hashes stored in sqlite made cursor like way way better.. added rules - detailed enough to get the ai to constantly add notes and then from the main notepad "team-notes.txt" the AI is instructed to summarize and find the best project structure details and context then use sqlite to store hashes for the compressed memory. the AI agents are all like 90 year olds with Alzheimer's but kinda developers so reminding them constantly of structure, dependencies and the os - container all the details and goals of the project along with user specific context makes them way more useful. this is my attempt at a secure private and potentially 🐔 blocking all the ai companies storing our data by making a secure parallel memory context system ... where you can swap between models and still have great results all because of context.. 
+
+
+
